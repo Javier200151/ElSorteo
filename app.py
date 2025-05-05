@@ -36,6 +36,10 @@ def login_to_forum(session):
 
 def get_bbcode_posts():
     session = requests.Session()
+
+    session.headers.update({
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+    })
     login_to_forum(session)
 
     forum_page = session.get(FORUM_URL)
