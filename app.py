@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 import requests
 from bs4 import BeautifulSoup
 import os
-import sys 
+import sys
 
 app = Flask(__name__)
 
@@ -14,7 +14,6 @@ USERNAME = os.getenv("USERNAME")
 PASSWORD = os.getenv("PASSWORD")
 
 def login_to_forum(session):
-    # Obtener tokens de formulario
     login_page = session.get(LOGIN_URL)
     soup = BeautifulSoup(login_page.text, "html.parser")
 
@@ -31,15 +30,16 @@ def login_to_forum(session):
         "form_token": form_token
     }
 
-    # Enviar login
     session.post(LOGIN_URL, data=payload)
 
 def get_bbcode_posts():
     session = requests.Session()
 
+    # Simular navegador real
     session.headers.update({
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
     })
+
     login_to_forum(session)
 
     forum_page = session.get(FORUM_URL)
@@ -52,6 +52,7 @@ def get_bbcode_posts():
         href = link["href"]
         post_url = BASE_URL + href.replace("&amp;", "&")
         print(f"Accediendo a: {post_url}", file=sys.stdout, flush=True)
+
         post_page = session.get(post_url)
         post_soup = BeautifulSoup(post_page.text, "html.parser")
 
@@ -62,10 +63,19 @@ def get_bbcode_posts():
 
         quote_url = BASE_URL + "/" + quote_link["href"].replace("&amp;", "&")
         print(f"Cargando BBCode desde: {quote_url}", file=sys.stdout, flush=True)
-        quote_page = session.get(quote_url)
-        quote_soup = BeautifulSoup(quote_page.text, "html.parser")
 
+        quote_page = session.get(quote_url)
+
+        # DEBUG extra
+        print("URL cargada:", quote_page.url, file=sys.stdout, flush=True)
+        print("Longitud del HTML:", len(quote_page.text), file=sys.stdout, flush=True)
+
+        if "No estás autorizado" in quote_page.text or "login" in quote_page.url:
+            print("¡El foro dice que no hay permisos!", file=sys.stdout, flush=True)
+
+        quote_soup = BeautifulSoup(quote_page.text, "html.parser")
         textarea = quote_soup.find("textarea", {"name": "message"})
+
         if textarea:
             print("BBCode encontrado.", file=sys.stdout, flush=True)
             posts_bbcode.append(textarea.text.strip())
