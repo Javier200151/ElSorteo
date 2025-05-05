@@ -46,21 +46,27 @@ def get_bbcode_posts():
     for link in topic_links:
         href = link["href"]
         post_url = BASE_URL + href.replace("&amp;", "&")
+        print(f"Accediendo a: {post_url}")
         post_page = session.get(post_url)
         post_soup = BeautifulSoup(post_page.text, "html.parser")
 
         # Buscar enlace de citar
         quote_link = post_soup.find("a", href=lambda x: x and "mode=quote" in x)
         if not quote_link:
+            print("No se encontró botón de citar.")
             continue
 
         quote_url = BASE_URL + "/" + quote_link["href"].replace("&amp;", "&")
+        print(f"Cargando BBCode desde: {quote_url}")
         quote_page = session.get(quote_url)
         quote_soup = BeautifulSoup(quote_page.text, "html.parser")
 
         textarea = quote_soup.find("textarea", {"name": "message"})
         if textarea:
             posts_bbcode.append(textarea.text.strip())
+        else:
+            print("No se encontró textarea con BBCode.")
+
 
     return posts_bbcode
 
